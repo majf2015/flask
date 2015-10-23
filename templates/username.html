@@ -1,0 +1,20 @@
+{% import 'usermacro.html'  as usermacro %}
+{% extends "base.html" %}
+{% block page_content %}
+<div class="page-header">
+  <h1>Hello {{name}}!</h1>
+  <p>A value from a dictionary: {{mydict['key']}}</p>
+  <p>A value from a list: {{mylist[1]}}</p>
+
+  <ul>
+    {% for item in mylist %}
+    {{usermacro.render_comment(item)}}
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}
+
+
+
+
+

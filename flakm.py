@@ -1,5 +1,6 @@
 from flask import Flask, render_template, current_app, g, request, session, redirect, url_for, flash
 import flask
+import os
 from flask.ext.script import Manager, Shell
 from flask.ext.bootstrap import Bootstrap
 from flask.ext.moment import Moment
@@ -9,6 +10,7 @@ from wtforms import StringField, SubmitField, TextAreaField
 from wtforms.validators import Required, Length
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.migrate import Migrate, MigrateCommand
+from flask.ext.mail import Message, Mail
 
 
 class NameForm(Form):
@@ -23,10 +25,20 @@ moment = Moment(app)
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 manager.add_command('db', MigrateCommand)
+mail = Mail(app)
 app.config['SECRET_KEY'] = 'secret'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///D:/python/myproject/venv/flask/sqlitef.db'
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///D:/python/myproject/venv/flask/sqlitef.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///E:/myproject/venv/flask/sqlitef.db'
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+app.config['MAIL_SERVER'] = 'smtp.qq.com'
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+app.config['FLASKY_MAIL_SUBJECT_PREFIX'] = '[Flasky]'
+app.config['FLASKY_MAIL_SENDER'] = 'Flasky Admin<1102103123@qq.com>'
+app.config['FLASKY_ADMIN'] = os.environ.get('FLASKY_ADMIN')
+
 
 
 class Role(db.Model):
@@ -41,6 +53,7 @@ class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key = True)
     username = db.Column(db.String(64), unique = True, index = True)
+    user_introduction = db.Column(db.String(64), default = 'default')
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
 
     def __repr__(self):
@@ -60,6 +73,8 @@ def index():
                 user = User(username = form.name.data.lower(), role = role)
             db.session.add(user)
             session['know'] = False
+            #if app.config['FLASKY_ADMIN']:
+             #   send_email(app.config['FLASKY_ADMIN'], 'New User', 'mail/new_user', user = user)
         else:
             session['know'] = True
         session['name'] = form.name.data
@@ -94,6 +109,13 @@ def internal_server_error(e):
 def make_shell_context():
     return dict(app = app, db = db, User = User, Role = Role)
 manager.add_command('shell', Shell(make_context = make_shell_context))
+
+def send_email(to, subject, template, **kwargs):
+    msg = Message(app.config['FLASKY_MAIL_SUBJECT_PREFIX'] + subjest, sender =app.config['FLASKY_MAIL_SENDER'],
+                  recipients = [to])
+    msg.body = render_template(template + '.txt', **kwargs)
+    msg.html = render_template(template + '.html',**kwargs)
+    mail.send(msg)
 
 
 

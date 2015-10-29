@@ -28,10 +28,11 @@ manager.add_command('db', MigrateCommand)
 mail = Mail(app)
 app.config['SECRET_KEY'] = 'secret'
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///D:/python/myproject/venv/flask/sqlitef.db'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///E:/myproject/venv/flask/sqlitef.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///E:/myproject/venv/flakm/sqlitef.db'
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.config['MAIL_SERVER'] = 'smtp.qq.com'
+app.config['MAIL_PORT'] = 6942
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
@@ -73,8 +74,8 @@ def index():
                 user = User(username = form.name.data.lower(), role = role)
             db.session.add(user)
             session['know'] = False
-            #if app.config['FLASKY_ADMIN']:
-             #   send_email(app.config['FLASKY_ADMIN'], 'New User', 'mail/new_user', user = user)
+            if app.config['FLASKY_ADMIN']:
+                send_email(app.config['FLASKY_ADMIN'], 'New User', 'mail/new_user', user = user)
         else:
             session['know'] = True
         session['name'] = form.name.data
